@@ -124,8 +124,7 @@ public class FYPCreateFreqeucny {
   
   
       /**
-     * Generate the required frequency
-     * Calculate the Sin wave of the provided frequency and timer
+     * Generate a bit String of given byte array
      * 
      * @param bytes                       Byte array to convert to bit String
      * @return output                     Bit array String 
@@ -151,8 +150,7 @@ public class FYPCreateFreqeucny {
     }
     
     /**
-     * Generate the required frequency
-     * Calculate the Sin wave of the provided frequency and timer
+     * Testing for now
      * 
      * @param args                        None
      * @param bytes                       Byte array to convert to bit String
