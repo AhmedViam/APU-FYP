@@ -1,4 +1,3 @@
-
 package githubfyp;
 
 import static java.lang.Thread.sleep;
@@ -23,10 +22,7 @@ public class FYPCreateFrequency {
        protected static final int  SAMPLE_RATE = 64000;
        protected static final int  ERROR_BITS = 6;
        protected static final int  SIGNAL_TIMER = 26;
-       
-       static byte[] fromBinary;
-       static String accumilate;
-
+   
     
     /**
      * Calculate the Sin wave data for the given frequency
@@ -52,6 +48,17 @@ public class FYPCreateFrequency {
         return output;
     }
   
+      /**
+     * Encode the data with Reed Solomon
+     * 
+     * @param message                     The string of data to be encoded
+     * @return output                     Reed Solomon encoded String     
+     * @throws com.casualcoding.reedsolomon.EncoderDecoder.DataTooLargeException     
+     * @throws com.casualcoding.reedsolomon.ReedSolomonException     
+     * @throws java.io.UnsupportedEncodingException     
+     * @throws IllegalArgumentException   If frequency is out of bounds.
+     */ 
+  
   public static String encodeData(String message) throws EncoderDecoder.DataTooLargeException, ReedSolomonException, UnsupportedEncodingException {           
         EncoderDecoder encoderDecoder = new EncoderDecoder();
                 
@@ -63,6 +70,15 @@ public class FYPCreateFrequency {
            
         return(toBitString(encodedData));                  
   }
+  
+      /**
+     * Calculate the Sin wave data for the given frequency
+     *    
+     * @param bitStream                   Bit Stream of data for frequency generation
+     * @throws javax.sound.sampled.LineUnavailableException
+     * @throws java.lang.InterruptedException
+     * @throws IllegalArgumentException   If frequency is out of bounds.
+     */ 
   
     public static void generateFrequency(String bitStream) throws LineUnavailableException, InterruptedException {
         final AudioFormat audioFormat = new AudioFormat(SAMPLE_RATE, 8, 1, true, true);
@@ -86,7 +102,8 @@ public class FYPCreateFrequency {
       * There has to be a better way.
       */           
             Data.open(audioFormat, SAMPLE_RATE);
-            Data.start();          
+            Data.start(); 
+                
                byte[] signalaccumulator;
                
                signalaccumulator = calculateSinWave(9000, SIGNAL_TIMER);
@@ -123,12 +140,12 @@ public class FYPCreateFrequency {
     }
   
   
-      /**
-     * Generate a bit String of given byte array
+    /**
+     * Calculate the Sin wave data for the given frequency
      * 
-     * @param bytes                       Byte array to convert to bit String
-     * @return output                     Bit array String 
-     */ 
+     * @param bytes                       Byte array to be converted to bit String
+     * @return output                     Bit String     
+     */  
     
     public static String toBitString(final byte[] bytes) {
         final char[] bits = new char[8 * bytes.length];
@@ -147,27 +164,5 @@ public class FYPCreateFrequency {
             }
         }
         return String.valueOf(bits);
-    }
-    
-    /**
-     * Testing for now
-     * 
-     * @param args                        None
-     * @param bytes                       Byte array to convert to bit String
-     * @return output                     Bit array String     
-     * @throws javax.sound.sampled.LineUnavailableException     
-     * @throws java.lang.InterruptedException     
-     * @throws java.io.IOException     
-     * @throws com.casualcoding.reedsolomon.ReedSolomonException     
-     * @throws java.io.UnsupportedEncodingException     
-     * @throws com.casualcoding.reedsolomon.EncoderDecoder.DataTooLargeException     
-     */ 
-    
-    public static void main(String[] args) throws EncoderDecoder.DataTooLargeException, ReedSolomonException, UnsupportedEncodingException, LineUnavailableException, InterruptedException{
-       
-       String encoded = encodeData("Hello my name is viam");
-        System.out.println(encoded);
-        generateFrequency(encoded);
-        
     }
 }
