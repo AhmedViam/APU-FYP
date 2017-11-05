@@ -17,7 +17,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @author Viam
  */
-public class FYPCreateFreqeucny {
+public class FYPCreateFrequency {
 
     
        protected static final int  SAMPLE_RATE = 64000;
