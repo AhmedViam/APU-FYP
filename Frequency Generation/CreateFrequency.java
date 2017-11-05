@@ -1,3 +1,27 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2017 Viam.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package githubfyp;
 
 import static java.lang.Thread.sleep;
@@ -10,21 +34,20 @@ import javax.sound.sampled.SourceDataLine;
 import com.casualcoding.reedsolomon.EncoderDecoder;
 import com.casualcoding.reedsolomon.ReedSolomonException;
 import com.casualcoding.reedsolomon.Util;
+import githubfyp.Utils.Utils;
 import java.io.UnsupportedEncodingException;
 
 /**
  *
  * @author Viam
  */
-
 public class FYPCreateFrequency {
 
     
        protected static final int  SAMPLE_RATE = 64000;
        protected static final int  ERROR_BITS = 6;
        protected static final int  SIGNAL_TIMER = 26;
-       protected static final float UPPER_LIMIT = 10000;
-       protecedt static final float LOWER_LIMIT = 200;
+   
     
     /**
      * Calculate the Sin wave data for the given frequency
@@ -32,12 +55,12 @@ public class FYPCreateFrequency {
      * @param  frequency                  The frequency of wave
      * @param  timer                      The number of millisecond to hold
      * @return output                     Byte array of the Sin wave     
-     * @throws IllegalArgumentException   If frequency is out of bounds.
+     * @throws githubfyp.FYPException     If frequency is out of bounds.
      */ 
     
-  public static byte[] calculateSinWave(double frequency, int timer) {
-        if (frequency >= UPPER_LIMIT || LOWER_LIMIT <= 200)
-            throw new IllegalArgumentException("Frequency is out of bounds");
+  public static byte[] calculateSinWave(double frequency, int timer) throws FYPException {
+        if (frequency >= 10000 || frequency <= 200)
+            throw new FYPException("Frequency is out of bounds");
 
         int samples = (int)((timer * SAMPLE_RATE) / 1000);
         byte[] output = new byte[samples];
@@ -70,34 +93,8 @@ public class FYPCreateFrequency {
         System.out.println(String.format("Message: %s", Util.toHex(data))); 
         System.out.println(String.format("Encoded Message: %s with lengeth %s", Util.toHex(encodedData), encodedData.length) );
            
-        return(toBitString(encodedData));                  
+        return(Utils.toBitString(encodedData));                  
   }
-  
-      /**
-     * Calculate the bit values of the encoded data
-     * 
-     * @param bytes                       Byte array to be converted to bit String
-     * @return output                     Bit String     
-     */  
-    
-    public static String toBitString(final byte[] bytes) {
-        final char[] bits = new char[8 * bytes.length];
-        for (int i = 0; i < bytes.length; i++) {
-            final byte byteval = bytes[i];
-            int byteHolder = i << 3;
-            int mask = 0x1;
-            for (int j = 7; j >= 0; j--) {
-                final int bitval = byteval & mask;
-                if (bitval == 0) {
-                    bits[byteHolder + j] = '0';
-                } else {
-                    bits[byteHolder + j] = '1';
-                }
-                mask <<= 1;
-            }
-        }
-        return String.valueOf(bits);
-    }
   
       /**
      * Calculate the Sin wave data for the given frequency
@@ -105,10 +102,11 @@ public class FYPCreateFrequency {
      * @param bitStream                   Bit Stream of data for frequency generation
      * @throws javax.sound.sampled.LineUnavailableException
      * @throws java.lang.InterruptedException
+     * @throws githubfyp.FYPException
      * @throws IllegalArgumentException   If frequency is out of bounds.
      */ 
   
-    public static void generateFrequency(String bitStream) throws LineUnavailableException, InterruptedException {
+    public static void generateFrequency(String bitStream) throws LineUnavailableException, InterruptedException, FYPException {
         final AudioFormat audioFormat = new AudioFormat(SAMPLE_RATE, 8, 1, true, true);
         try (SourceDataLine Data = AudioSystem.getSourceDataLine(audioFormat)) {
             
