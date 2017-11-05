@@ -23,8 +23,8 @@ public class FYPCreateFrequency {
        protected static final int  SAMPLE_RATE = 64000;
        protected static final int  ERROR_BITS = 6;
        protected static final int  SIGNAL_TIMER = 26;
-       protect static final float UPPER_LIMIT = 10000;
-       protect static final float LOWER_LIMIT = 200;
+       protected static final float UPPER_LIMIT = 10000;
+       protecedt static final float LOWER_LIMIT = 200;
     
     /**
      * Calculate the Sin wave data for the given frequency
