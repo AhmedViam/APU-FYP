@@ -16,13 +16,13 @@ import java.io.UnsupportedEncodingException;
  *
  * @author Viam
  */
+
 public class FYPCreateFrequency {
 
     
        protected static final int  SAMPLE_RATE = 64000;
        protected static final int  ERROR_BITS = 6;
        protected static final int  SIGNAL_TIMER = 26;
-   
     
     /**
      * Calculate the Sin wave data for the given frequency
@@ -72,6 +72,32 @@ public class FYPCreateFrequency {
   }
   
       /**
+     * Calculate the bit values of the encoded data
+     * 
+     * @param bytes                       Byte array to be converted to bit String
+     * @return output                     Bit String     
+     */  
+    
+    public static String toBitString(final byte[] bytes) {
+        final char[] bits = new char[8 * bytes.length];
+        for (int i = 0; i < bytes.length; i++) {
+            final byte byteval = bytes[i];
+            int byteHolder = i << 3;
+            int mask = 0x1;
+            for (int j = 7; j >= 0; j--) {
+                final int bitval = byteval & mask;
+                if (bitval == 0) {
+                    bits[byteHolder + j] = '0';
+                } else {
+                    bits[byteHolder + j] = '1';
+                }
+                mask <<= 1;
+            }
+        }
+        return String.valueOf(bits);
+    }
+  
+      /**
      * Calculate the Sin wave data for the given frequency
      *    
      * @param bitStream                   Bit Stream of data for frequency generation
@@ -102,8 +128,7 @@ public class FYPCreateFrequency {
       * There has to be a better way.
       */           
             Data.open(audioFormat, SAMPLE_RATE);
-            Data.start(); 
-                
+            Data.start();          
                byte[] signalaccumulator;
                
                signalaccumulator = calculateSinWave(9000, SIGNAL_TIMER);
@@ -137,32 +162,5 @@ public class FYPCreateFrequency {
                
                Data.drain();            
         }
-    }
-  
-  
-    /**
-     * Calculate the Sin wave data for the given frequency
-     * 
-     * @param bytes                       Byte array to be converted to bit String
-     * @return output                     Bit String     
-     */  
-    
-    public static String toBitString(final byte[] bytes) {
-        final char[] bits = new char[8 * bytes.length];
-        for (int i = 0; i < bytes.length; i++) {
-            final byte byteval = bytes[i];
-            int byteHolder = i << 3;
-            int mask = 0x1;
-            for (int j = 7; j >= 0; j--) {
-                final int bitval = byteval & mask;
-                if (bitval == 0) {
-                    bits[byteHolder + j] = '0';
-                } else {
-                    bits[byteHolder + j] = '1';
-                }
-                mask <<= 1;
-            }
-        }
-        return String.valueOf(bits);
     }
 }
