@@ -23,6 +23,8 @@ public class FYPCreateFrequency {
        protected static final int  SAMPLE_RATE = 64000;
        protected static final int  ERROR_BITS = 6;
        protected static final int  SIGNAL_TIMER = 26;
+       protect static final float UPPER_LIMIT = 10000;
+       protect static final float LOWER_LIMIT = 200;
     
     /**
      * Calculate the Sin wave data for the given frequency
@@ -34,7 +36,7 @@ public class FYPCreateFrequency {
      */ 
     
   public static byte[] calculateSinWave(double frequency, int timer) {
-        if (frequency >= 10000 || frequency <= 200)
+        if (frequency >= UPPER_LIMIT || LOWER_LIMIT <= 200)
             throw new IllegalArgumentException("Frequency is out of bounds");
 
         int samples = (int)((timer * SAMPLE_RATE) / 1000);
