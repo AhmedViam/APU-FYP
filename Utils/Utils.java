@@ -77,8 +77,4 @@ public class Utils {
     public String toHex(String string) {
         return String.format("%040x", new BigInteger(1, arg.getBytes()));
     }
-    
-    
-    
-    
 }
