@@ -30,11 +30,11 @@ package githubfyp.Utils;
 public class Utils {
     
       
-      /**
+    /**
      * Calculate the bit values of the encoded data
      * 
-     * @param bytes                       Byte array to be converted to bit String
-     * @return output                     Bit String     
+     * @param bytes                 Byte array to be converted to bit String
+     * @return output               Bit String     
      */  
     
     public static String toBitString(final byte[] bytes) {
@@ -55,4 +55,30 @@ public class Utils {
         }
         return String.valueOf(bits);
     }
+    
+    /**
+     * Parse and return a String from binary of Hex
+     * 
+     * @param binary                A string of binary characters
+     * @return output               Parsed to Hex     
+     */
+    
+    public static String binaryToHex(String binary) {
+        return String.format("%21X", Long.parseLong(bin, 2));
+    }
+
+    /**
+     * Parse and return a String from String of Hex
+     * 
+     * @param string                A string
+     * @return output               Parsed to Hex     
+     */
+    
+    public String toHex(String string) {
+        return String.format("%040x", new BigInteger(1, arg.getBytes()));
+    }
+    
+    
+    
+    
 }
