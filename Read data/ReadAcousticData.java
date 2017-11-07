@@ -40,6 +40,7 @@ import org.apache.commons.math3.complex.Complex;
 import githubfyp.Utils.Utils;
 
 
+
 /**
  * @author Viam
  * Class to capture frequencies, decode and re-construct data
@@ -54,10 +55,13 @@ public class ReadAcousticData {
     
     byte byteData[]; 
     double doubleData[]; 
+    static StringBuilder packetsize = new StringBuilder();
+    
     
     boolean startCollection = false;
     static boolean endCollection = false;
     boolean collectDataFrequency = false;
+    boolean getPacketSize = false;
     static StringBuilder dataString = new StringBuilder();
     int toneMapIndex;
     String translatedBytes;
@@ -191,8 +195,8 @@ public class ReadAcousticData {
                 metrics.DATA_METRIC = frequency;
                 toneMapIndex = (int) Math.round( metrics.DATA_METRIC);
                 translatedBytes = findNearest(tonemap.bitString, toneMapIndex);
-
-                System.out.println("Received DATA_METRIC: " + metrics.DATA_METRIC);
+                
+                System.out.println("Received DATA_METRIC: " + metrics.DATA_METRIC + " " +  metrics.DATA_METRIC  + translatedBytes  );
                 System.out.println("Decoded DATA_METRIC: " + translatedBytes);
                 collectDataFrequency = false;
                 dataString.append(translatedBytes);
@@ -210,13 +214,15 @@ public class ReadAcousticData {
                 BigInteger c = new BigInteger(dataString.toString(), 2);
 
                 String result = c.toString(16);
+                System.out.println(result);
                 result = result.replace("ff", "");
-                BigInteger b = new BigInteger(result, 16);
-
+                BigInteger b = new BigInteger(result, 16);           
+                
                 byte[] decodedData = encoderDecoder.decodeData(b.toByteArray(), 6);
-
                 System.out.println(String.format("Decoded/Repaired Message: %s", Util.toHex(decodedData)));
-                String FinalText = new String(decodedData, 0, decodedData.length, "ASCII");
+           
+                byte[] finalholder = Arrays.copyOfRange(decodedData, 2, decodedData.length);          
+                String FinalText = new String(finalholder, 0, finalholder.length, "ASCII");
                 System.out.println("Re-constructed data: " + FinalText);
                 System.exit(0);            
             }
@@ -226,7 +232,7 @@ public class ReadAcousticData {
     public static void main(String[] args) throws IOException, FileNotFoundException, InterruptedException, EncoderDecoder.DataTooLargeException, ReedSolomonException, FYPException, LineUnavailableException {
   
         
-         ReadAcousticData data = new ReadAcousticData();
+        ReadAcousticData data = new ReadAcousticData();
 
         while (System.in.available() == 0) {
             
