@@ -34,7 +34,7 @@ public class ToneMetrics {
     protected final float STOP_METRIC = 9500;
     protected double DATA_METRIC = 0; 
     protected final float LOWER_PRECESION_METRIC = 50;
-    protected final float HIGHER_PRECESION_METRIC = 50;
+    protected final float HIGHER_PRECESION_METRIC = 30;
     
     public ToneMetrics(){
         
