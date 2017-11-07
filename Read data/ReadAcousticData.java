@@ -40,7 +40,10 @@ import org.apache.commons.math3.complex.Complex;
 import githubfyp.Utils.Utils;
 
 
-
+/**
+ * @author Viam
+ * Class to capture frequencies, decode and re-construct data
+ */
 
 public class ReadAcousticData {
 
@@ -52,16 +55,18 @@ public class ReadAcousticData {
     byte byteData[]; 
     double doubleData[]; 
     
-    static boolean startCollection = false;
+    boolean startCollection = false;
     static boolean endCollection = false;
     boolean collectDataFrequency = false;
-    double dataCarrierFrequency = 0;
     static StringBuilder dataString = new StringBuilder();
     int toneMapIndex;
     String translatedBytes;
-    String input = "0100100001100101011011000110110001101111001000000111011101101111011100100110110001100100111000001010011000110110111000101110011101110101";
 
-
+    /**
+     * All data sources and few settings are initialized in the constructor
+     *
+     */ 
+    
     public ReadAcousticData() {    
         byteData = new byte[settings.SOUND_FRAMES];  
         doubleData = new double[settings.SOUND_FRAMES]; 
@@ -86,6 +91,10 @@ public class ReadAcousticData {
         }
     }
 
+    /**
+     * Read bytes of a set length from the data source, in this case the microphone
+     * @return number of bytes read
+     */
     
     public int readBytes() {
         int numberOfBytes = settings.microphone.read(byteData, 0, byteData.length);
@@ -96,6 +105,9 @@ public class ReadAcousticData {
         return numberOfBytes;
     }
 
+    /**
+     * Convert byte buffer from byte to Double
+     */
 
     public void byteToDouble() {
         ByteBuffer buf = ByteBuffer.wrap(byteData);
@@ -109,6 +121,11 @@ public class ReadAcousticData {
         }
     }
     
+    /**
+     * Find the nearest frequency match from the tone map
+     * Given a frequency say 7789, it checks the tone map for the closet frequency to 7789
+     * This eliminates the discrepancies of receiving a slightly inaccurate but correct frequency.
+     */
 
     private static String findNearest(Map < Integer, String > map, int value) {
         Map.Entry < Integer, String > previousEntry = null;
@@ -129,192 +146,94 @@ public class ReadAcousticData {
         return previousEntry.getValue();
     }
 
-
-
-
-
     /**
-     *
-     * @param bin
-     * @return
+     * Identify the Specific frequencies of use such as start / data / stop / ending
      * @throws java.io.IOException
      * @throws com.casualcoding.reedsolomon.EncoderDecoder.DataTooLargeException
      * @throws com.casualcoding.reedsolomon.ReedSolomonException
      * @throws githubfyp.FYPException
      */
+    
+    public void identifyFrequency() throws IOException, EncoderDecoder.DataTooLargeException, ReedSolomonException, FYPException {
 
+        double frequency;
+        Complex[] complex = settings.transformer.transform(doubleData, TransformType.FORWARD);
+        double real;
+        double imaginary;
+        double magnitude[] = new double[complex.length];
 
-public void identifyFrequency() throws IOException, EncoderDecoder.DataTooLargeException, ReedSolomonException, FYPException {
-
-    double frequency;
-    Complex[] complex = settings.transformer.transform(doubleData, TransformType.FORWARD);
-    double real;
-    double imaginary;
-    double magnitude[] = new double[complex.length];
-
-    for (int i = 0; i < complex.length; i++) {
-        real = complex[i].getReal();
-        imaginary = complex[i].getImaginary();
-        magnitude[i] = Math.sqrt((real * real) + (imaginary * imaginary));
-    }
-    double peak = -1.0;
-    int index = -1;
-    for (int i = 0; i < complex.length; i++) {
-        if (peak < magnitude[i]) {
-            index = i;
-            peak = magnitude[i];
+        for (int i = 0; i < complex.length; i++) {
+            real = complex[i].getReal();
+            imaginary = complex[i].getImaginary();
+            magnitude[i] = Math.sqrt((real * real) + (imaginary * imaginary));
         }
-    }
-  frequency = (settings.SAMPLE_RATE * index) / settings.SOUND_FRAMES;
-  ToneMap tonemap = new ToneMap();
-  Utils.RangeTest rangeTest = new Utils.RangeTest() ;
+        double peak = -1.0;
+        int index = -1;
+        for (int i = 0; i < complex.length; i++) {
+            if (peak < magnitude[i]) {
+                index = i;
+                peak = magnitude[i];
+            }
+        }
+        
+    frequency = (settings.SAMPLE_RATE * index) / settings.SOUND_FRAMES;
+    ToneMap tonemap = new ToneMap();
+    Utils.RangeTest rangeTest = new Utils.RangeTest() ;
   
-    if (rangeTest.checkRange((int)frequency, (int)LOWER_LIMIT, (int)UPPER_LIMIT ) && endCollection == false) {
-        if (rangeTest.checkRange((int)frequency, (int)metrics.START_METRIC - (int)metrics.LOWER_PRECESION_METRIC, (int)metrics.START_METRIC + (int)metrics.LOWER_PRECESION_METRIC) && endCollection == false) {
-            System.out.println("Received START_METRIC: " +metrics.START_METRIC );
-            startCollection = true;
-            collectDataFrequency = true;
+        if (rangeTest.checkRange((int)frequency, (int)LOWER_LIMIT, (int)UPPER_LIMIT ) && endCollection == false) {
+            if (rangeTest.checkRange((int)frequency, (int)metrics.START_METRIC - (int)metrics.LOWER_PRECESION_METRIC, (int)metrics.START_METRIC + (int)metrics.LOWER_PRECESION_METRIC) && endCollection == false) {
+                System.out.println("Received START_METRIC: " +metrics.START_METRIC );
+                startCollection = true;
+                collectDataFrequency = true;  
+            }
+        
+            if (startCollection == true && rangeTest.checkRange((int)frequency, (int)LOWER_LIMIT, (int)metrics.START_METRIC - (int)metrics.LOWER_PRECESION_METRIC) == true && collectDataFrequency == true && endCollection == false) {
+                metrics.DATA_METRIC = frequency;
+                toneMapIndex = (int) Math.round( metrics.DATA_METRIC);
+                translatedBytes = findNearest(tonemap.bitString, toneMapIndex);
+
+                System.out.println("Received DATA_METRIC: " + metrics.DATA_METRIC);
+                System.out.println("Decoded DATA_METRIC: " + translatedBytes);
+                collectDataFrequency = false;
+                dataString.append(translatedBytes);
+            }
+        
+            if (rangeTest.checkRange((int)frequency, (int)metrics.END_METRIC - (int)metrics.LOWER_PRECESION_METRIC, (int)metrics.END_METRIC + (int)metrics.LOWER_PRECESION_METRIC) && endCollection == false){
+                System.out.println("Received END_METRIC: " + metrics.END_METRIC );
+                startCollection = false;
+            }
+        
+            if (rangeTest.checkRange((int)frequency, (int)metrics.STOP_METRIC - (int)metrics.LOWER_PRECESION_METRIC, (int)metrics.STOP_METRIC + (int)metrics.LOWER_PRECESION_METRIC) && endCollection == false) {
+                endCollection = true;
+                EncoderDecoder encoderDecoder = new EncoderDecoder();
             
-        }
+                BigInteger c = new BigInteger(dataString.toString(), 2);
 
-        if (startCollection == true && rangeTest.checkRange((int)frequency, (int)LOWER_LIMIT, (int)metrics.START_METRIC - (int)metrics.LOWER_PRECESION_METRIC) == true && collectDataFrequency == true && endCollection == false) {
-            metrics.DATA_METRIC = frequency;
-            toneMapIndex = (int) Math.round( metrics.DATA_METRIC);
-            translatedBytes = findNearest(tonemap.bitString, toneMapIndex);
+                String result = c.toString(16);
+                result = result.replace("ff", "");
+                BigInteger b = new BigInteger(result, 16);
 
-            System.out.println("Received DATA_METRIC: " + metrics.DATA_METRIC);
-            System.out.println("Decoded DATA_METRIC: " + translatedBytes);
-            collectDataFrequency = false;
-            dataString.append(translatedBytes);
+                byte[] decodedData = encoderDecoder.decodeData(b.toByteArray(), 6);
 
-        }
-
-        if (rangeTest.checkRange((int)frequency, (int)metrics.END_METRIC - (int)metrics.LOWER_PRECESION_METRIC, (int)metrics.END_METRIC + (int)metrics.LOWER_PRECESION_METRIC) && endCollection == false){
-            System.out.println("Received END_METRIC: " + metrics.END_METRIC );
-            Arrays.stream(dataString.toString().split("(?<=\\G.{8})")).forEach(s -> System.out.print((char) Integer.parseInt(s, 2)));
-            printSimilarity(dataString.toString(), input);
-            startCollection = false;
-            
-        }
-
-        if (rangeTest.checkRange((int)frequency, (int)metrics.STOP_METRIC - (int)metrics.LOWER_PRECESION_METRIC, (int)metrics.STOP_METRIC + (int)metrics.LOWER_PRECESION_METRIC) && endCollection == false) {
-            endCollection = true;
-            EncoderDecoder encoderDecoder = new EncoderDecoder();
-            
-            BigInteger c = new BigInteger(dataString.toString(), 2);
-
-            String result = c.toString(16);
-
-            result = result.replace("ff", "");
-            BigInteger b = new BigInteger(result, 16);
-
-
-
-            byte[] decodedData = encoderDecoder.decodeData(b.toByteArray(), 6);
-
-            System.out.println(String.format("Decoded/Repaired Message: %s", Util.toHex(decodedData)));
-            String FinalText = new String(decodedData, 0, decodedData.length, "ASCII");
-            System.out.println("Re-constructed data: " + FinalText);
-            
-        }
-    }
-}
-
-    public void printFreqs() {
-        for (int i = 0; i < settings.SOUND_FRAMES / 4; i++) {
-            System.out.println("bin " + i + ", freq: " + (settings.SAMPLE_RATE * i) / settings.SOUND_FRAMES);
+                System.out.println(String.format("Decoded/Repaired Message: %s", Util.toHex(decodedData)));
+                String FinalText = new String(decodedData, 0, decodedData.length, "ASCII");
+                System.out.println("Re-constructed data: " + FinalText);
+                System.exit(0);            
+            }
         }
     }
 
-    public static double similarity(String s1, String s2) {
-        String longer = s1, shorter = s2;
-        if (s1.length() < s2.length()) { // longer should always have greater length
-            longer = s2;
-            shorter = s1;
-        }
-        int longerLength = longer.length();
-        if (longerLength == 0) {
-            return 1.0; /* both strings are zero length */
-        }
+    public static void main(String[] args) throws IOException, FileNotFoundException, InterruptedException, EncoderDecoder.DataTooLargeException, ReedSolomonException, FYPException, LineUnavailableException {
+  
+        
+         ReadAcousticData data = new ReadAcousticData();
 
-        return (longerLength - editDistance(longer, shorter)) / (double) longerLength;
+        while (System.in.available() == 0) {
+            
+        data.readBytes();
+        data.byteToDouble();
+        data.identifyFrequency();
+        
+        } 
     }
-
-
-public static int editDistance(String s1, String s2) {
-  s1 = s1.toLowerCase();
-  s2 = s2.toLowerCase();
-
-  int[] costs = new int[s2.length() + 1];
-  for (int i = 0; i <= s1.length(); i++) {
-   int lastValue = i;
-   for (int j = 0; j <= s2.length(); j++) {
-    if (i == 0)
-     costs[j] = j;
-    else {
-     if (j > 0) {
-      int newValue = costs[j - 1];
-      if (s1.charAt(i - 1) != s2.charAt(j - 1))
-       newValue = Math.min(Math.min(newValue, lastValue),
-        costs[j]) + 1;
-      costs[j - 1] = lastValue;
-      lastValue = newValue;
-     }
-    }
-   }
-   if (i > 0)
-    costs[s2.length()] = lastValue;
-  }
-  return costs[s2.length()];
- }
-
- public static void printSimilarity(String s, String t) {
-  // System.out.println(String.format(
-  //"%.3f is the percentage accuracy between \"%s\" (data sent) and \"%s\" (data received)", similarity(s, t) * 100, s, t));
-
-
-  System.out.println(String.format(
-   "%.3f is the percentage accuracy between (data sent) (data received)", similarity(s, t) * 100));
-
-
- }
- private static char convert(String bs) {
-  return (char) Integer.parseInt(bs, 2);
- }
- public static void main(String[] args) throws IOException, FileNotFoundException, InterruptedException, EncoderDecoder.DataTooLargeException, ReedSolomonException, FYPException {
-  ReadAcousticData ai = new ReadAcousticData();
-
-
-  // Do whatever you want
-
-  while (System.in.available() == 0) {
-   ai.readBytes();
-
-
-   ai.byteToDouble();
-   ai.identifyFrequency();
-  }
-
-
-
-
-
-  String yu = dataString.toString();
-
-  StringBuilder b = new StringBuilder();
-  int len = yu.length();
-  int i = 0;
-  while (i + 8 <= len) {
-   char c = convert(yu.substring(i, i + 8));
-   i += 8;
-   b.append(c);
-  }
-  System.out.println(b.toString());
- }
-
-
-
-
-
-
 }
