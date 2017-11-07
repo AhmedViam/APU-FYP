@@ -57,7 +57,7 @@ public class ReadAcousticData {
     double dataCarrierFrequency = 0;
     static StringBuilder dataString = new StringBuilder();
     int toneMapIndex;
-    String precesionFrequency;
+    String byteTranslation;
     String input = "0100100001100101011011000110110001101111001000000111011101101111011100100110110001100100111000001010011000110110111000101110011101110101";
 
 
@@ -170,20 +170,20 @@ public void identifyFrequency() throws IOException, EncoderDecoder.DataTooLargeE
   
     if (rangeTest.checkRange((int)frequency, (int)LOWER_LIMIT, (int)UPPER_LIMIT)) {
         if (rangeTest.checkRange((int)frequency, (int)metrics.START_METRIC - (int)metrics.LOWER_PRECESION_METRIC, (int)metrics.START_METRIC + (int)metrics.LOWER_PRECESION_METRIC)) {
-            System.out.println("Received start padding: telemetry 9000 hz");
+            System.out.println("Received START_METRIC: " + metrics.START_METRIC + " Hz");
             startCollection = true;
             collectDataFrequency = true;
         }
 
         if (startCollection == true && rangeTest.checkRange((int)frequency, (int)LOWER_LIMIT, (int)metrics.START_METRIC - (int)metrics.LOWER_PRECESION_METRIC) == true && collectDataFrequency == true) {
-            dataCarrierFrequency = frequency;
+            metrics.DATA_METRIC = frequency;
             toneMapIndex = (int) Math.round(dataCarrierFrequency);
-            precesionFrequency = findNearest(tm.bitString, toneMapIndex);
+            byteTranslation = findNearest(tm.bitString, toneMapIndex);
 
-            System.out.println(frequency);
-            System.out.println(precesionFrequency);
+            System.out.println("Received DATA_METRIC: " + metrics.DATA_METRIC + " Hz");
+            System.out.println("Translated Byte: " + byteTranslation);
             collectDataFrequency = false;
-            dataString.append(precesionFrequency);
+            dataString.append(byteTranslation);
         }
 
         if (rangeTest.checkRange((int)frequency, 9150, 9250)){
