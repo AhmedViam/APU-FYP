@@ -104,6 +104,22 @@ public class Utils {
         }
         return costs[s2.length()];
     }
+     
+        public static byte[][] splitByChunk(byte[] array, int chunkSize) {
+        int numOfChunks = (int)Math.ceil((double)array.length / chunkSize);
+        byte[][] output = new byte[numOfChunks][];
+
+        for(int i = 0; i < numOfChunks; ++i) {
+            int start = i * chunkSize;
+            int length = Math.min(array.length - start, chunkSize);
+
+            byte[] temp = new byte[length];
+            System.arraycopy(array, start, temp, 0, length);
+            output[i] = temp;
+        }
+
+        return output;
+    }
     
      
     public static class RangeTest {
