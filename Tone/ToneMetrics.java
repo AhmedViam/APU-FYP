@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2017 Silfvro.
+ * Copyright 2017 Viam.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +25,19 @@ package githubfyp;
 
 /**
  *
- * @author Silfvro
+ * @author Viam
  */
 public class ToneMetrics {
-    
-    protected final float START_METRIC = 9000; 
-    protected final float END_METRIC = 9200; 
+
+    protected final float START_METRIC = 9000;
+    protected final float END_METRIC = 9200;
     protected final float STOP_METRIC = 9500;
-    protected double DATA_METRIC = 0; 
+    protected final float MULTI_READER_STOP_METRIC = 9600;
+    protected double DATA_METRIC = 0;
     protected final float LOWER_PRECESION_METRIC = 50;
-    protected final float HIGHER_PRECESION_METRIC = 30;
-    
-    public ToneMetrics(){
-        
-    }      
+    protected final float HIGHER_PRECESION_METRIC = 50;
+
+    public ToneMetrics() {
+
+    }
 }
