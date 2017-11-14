@@ -50,7 +50,7 @@ import org.apache.commons.lang3.StringUtils;
  * Class to capture multiple packets and re-assemble them.
  */
 
-public class MultiPacketReader {
+public class MultiDataChunks {
 
     AudioSettings settings = new  AudioSettings();
     ToneMetrics metrics = new ToneMetrics();
@@ -81,7 +81,7 @@ public class MultiPacketReader {
      *
      */
 
-    public MultiPacketReader() {
+    public MultiDataChunks() {
         byteData = new byte[settings.SOUND_FRAMES];
         doubleData = new double[settings.SOUND_FRAMES];
         settings.transformer = new FastFourierTransformer(DftNormalization.STANDARD);
