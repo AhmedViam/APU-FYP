@@ -31,7 +31,6 @@ public class ByteMap {
 
 ByteMap(){
 
-
 }
 
     
